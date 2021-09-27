@@ -19,7 +19,7 @@ fill ansible "hosts" file and vars.yaml
 run:
 `ansible-playbook ./playbooks/install_prerequisites.yaml`
 
-do `ssh-copy-id` cmd from master to worker node (run `ssh-copy-id user@worker_ip` or copy public key and write it in known_hosts file in worker user/.ssh/ folder)
+do `ssh-copy-id` cmd from master to worker node (run `ssh-copy-id user@worker_ip` or copy public key and write it in authorized_keys file in worker user/.ssh/ folder)
 
 run:
 `ansible-playbook ./playbooks/install_rke.yaml`

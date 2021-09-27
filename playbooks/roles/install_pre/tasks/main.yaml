@@ -1,7 +1,4 @@
 ---
-- name: Generate /etc/ssh/ RSA host key
-  command : ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -C "" -N ""
-
 - name: install deps
   shell: apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
 
