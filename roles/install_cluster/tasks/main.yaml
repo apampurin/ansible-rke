@@ -1,0 +1,9 @@
+---
+- name: copy cluster.yml
+  template: src=cluster.yml.j2 dest=~/cluster.yml
+
+- name: start rke
+  shell: |
+        rke up --config ~/cluster.yml && \
+        export KUBECONFIG=./kube_config_cluster.yml
+        kubectl get nodes

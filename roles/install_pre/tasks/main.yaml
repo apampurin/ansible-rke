@@ -1,0 +1,61 @@
+---
+- name: Generate /etc/ssh/ RSA host key
+  command : ssh-keygen -q -t rsa -f ~/ssh_host_rsa_key/ssh_host_rsa_key -C "" -N ""
+  args:
+  creates: ~/ssh_host_rsa_key
+
+- name: install deps
+  shell: apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+- name: install docker
+  shell: |
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+        $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+        apt-get update && apt-get install -y docker-ce
+
+- name: install kubectl
+  shell: |
+        curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl && \
+        chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl && \
+        kubectl version --client
+
+- name: install rke
+  shell: |
+        curl -s https://api.github.com/repos/rancher/rke/releases/latest | grep download_url | grep amd64 | cut -d '"' -f 4 | wget -qi - && \
+        chmod +x rke_linux-amd64 && sudo mv rke_linux-amd64 /usr/local/bin/rke && \
+        rke --version
+
+- name: install helm
+  shell: |
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 && \
+        chmod 700 get_helm.sh && \
+        ./get_helm.sh
+
+- name: Load kernel modules for RKE
+  modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ kernel_modules }}"
+
+- name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
+  shell: |
+    swapoff -a
+ 
+- name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/2)
+  replace:
+    path: /etc/fstab
+    regexp: '^([^#].*?\sswap\s+.*)$'
+    replace: '# \1'
+
+- name: Modify sysctl entries
+  sysctl:
+    name: '{{ item.key }}'
+    value: '{{ item.value }}'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  with_items:
+    - {key: net.bridge.bridge-nf-call-ip6tables, value: 1}
+    - {key: net.bridge.bridge-nf-call-iptables,  value: 1}
+    - {key: net.ipv4.ip_forward,  value: 1}

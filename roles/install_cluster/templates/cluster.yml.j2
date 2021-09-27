@@ -1,0 +1,35 @@
+nodes:
+- address: {{ master_node_ip }}
+  user: {{ ssh_user }}
+  role:
+  - controlplane
+  - etcd
+  port: {{ ssh_port }}
+     
+- address: {{ worker_node_ip }}
+  user: {{ ssh_user }} 
+  role:
+  - worker
+  port: {{ ssh_port }}
+cluster_name: {{ cluster_name }}
+network:
+    plugin: flannel
+
+kubelet:
+  # Base domain for the cluster
+  cluster_domain: cluster.local
+  # Fail if swap is on
+  fail_swap_on: false
+  # Set max pods to 150 instead of default 110
+  extra_args:
+    max-pods: 150
+dns:
+  provider: coredns
+ingress:
+  provider: nginx
+  options:
+     use-forwarded-headers: "true"
+# Using SSH private key with a passphrase - eval `ssh-agent -s` && ssh-add
+ssh_agent_auth: true
+#  SSH key that access all hosts in your cluster
+ssh_key_path: {{ ssh_key_path }}

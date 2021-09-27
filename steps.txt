@@ -1,0 +1,192 @@
+Installation variables
+master_node_ip:
+master_node_user:
+master_node_port:
+worker_node_ip:
+worker_node_user:
+worker_node_port:
+cluster_name:
+rancher_domain:
+ssh_key_path: ~/.ssh/id_rsa
+
+
+## generate new ssh keys ##
+  tasks:
+  - name: Generate /etc/ssh/ RSA host key
+    command : ssh-keygen -q -t rsa -f /etc/ssh/ssh_host_rsa_key -C "" -N ""
+    args:
+      creates: /etc/ssh/ssh_host_rsa_key
+
+#### installing docker ####
+sudo apt-get update
+sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install docker-ce
+
+#### installing kubernetes ####
+## kubectl 
+curl -LO https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+sudo mv ./kubectl /usr/local/bin/kubectl
+kubectl version --client
+
+## RKE
+curl -s https://api.github.com/repos/rancher/rke/releases/latest | grep download_url | grep amd64 | cut -d '"' -f 4 | wget -qi -
+chmod +x rke_linux-amd64
+sudo mv rke_linux-amd64 /usr/local/bin/rke
+rke --version
+
+## helm
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+chmod 700 get_helm.sh
+./get_helm.sh
+
+---
+- name: Load RKE kernel modules
+  hosts: rke-hosts
+  remote_user: root
+  vars:
+    kernel_modules:
+      - br_netfilter
+      - ip6_udp_tunnel
+      - ip_set
+      - ip_set_hash_ip
+      - ip_set_hash_net
+      - iptable_filter
+      - iptable_nat
+      - iptable_mangle
+      - iptable_raw
+      - nf_conntrack_netlink
+      - nf_conntrack
+      - nf_conntrack_ipv4
+      - nf_defrag_ipv4
+      - nf_nat
+      - nf_nat_ipv4
+      - nf_nat_masquerade_ipv4
+      - nfnetlink
+      - udp_tunnel
+      - veth
+      - vxlan
+      - x_tables
+      - xt_addrtype
+      - xt_conntrack
+      - xt_comment
+      - xt_mark
+      - xt_multiport
+      - xt_nat
+      - xt_recent
+      - xt_set
+      - xt_statistic
+      - xt_tcpudp
+
+  tasks:
+    - name: Load kernel modules for RKE
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ kernel_modules }}"
+      
+---
+- name: Disable swap and load kernel modules
+  hosts: rke-hosts
+  remote_user: root
+  tasks:
+    - name: Disable SWAP since kubernetes can't work with swap enabled (1/2)
+      shell: |
+        swapoff -a
+     
+    - name: Disable SWAP in fstab since kubernetes can't work with swap enabled (2/2)
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+.*)$'
+        replace: '# \1'
+    - name: Modify sysctl entries
+      sysctl:
+        name: '{{ item.key }}'
+        value: '{{ item.value }}'
+        sysctl_set: yes
+        state: present
+        reload: yes
+      with_items:
+        - {key: net.bridge.bridge-nf-call-ip6tables, value: 1}
+        - {key: net.bridge.bridge-nf-call-iptables,  value: 1}
+        - {key: net.ipv4.ip_forward,  value: 1}
+        
+        
+Firewalld TCP ports:
+
+for i in 22 80 443 179 5473 6443 8472 2376 8472 2379-2380 9099 10250 10251 10252 10254 30000-32767; do
+    sudo firewall-cmd --add-port=${i}/tcp --permanent
+done
+sudo firewall-cmd --reload
+Firewalld UDP ports:
+
+for i in 8285 8472 4789 30000-32767; do
+   sudo firewall-cmd --add-port=${i}/udp --permanent
+done
+
+######
+cluster.yml (можно попробовать составить с помощью rke config --name cluster.yml)
+nodes:
+- address: {{ master_node_ip }}
+  user: {{ master_node_user }} 
+  role:
+  - controlplane
+  - etcd
+  port: {{ master_node_port }}
+     
+- address: {{ worker_node_ip }}
+  user: {{ worker_node_user }} 
+  role:
+  - worker
+  port: {{ master_node_port }}
+cluster_name: {{ cluster_name }}
+network:
+    plugin: canal
+    options:
+      canal_flannel_backend_type: vxlan
+kubelet:
+  # Base domain for the cluster
+  cluster_domain: cluster.local
+  # Fail if swap is on
+  fail_swap_on: false
+  # Set max pods to 150 instead of default 110
+  extra_args:
+    max-pods: 150
+dns:
+  provider: coredns
+ingress:
+  provider: nginx
+  options:
+     use-forwarded-headers: "true"
+# Using SSH private key with a passphrase - eval `ssh-agent -s` && ssh-add
+ssh_agent_auth: true
+#  SSH key that access all hosts in your cluster
+ssh_key_path: {{ ssh_key_path }}
+
+#### start cluster ####
+/* 
+/* This command assumes the cluster.yml file is in the same directory as where you are running the command
+/* If using a different filename, specify it like below. rke up --config ./rancher_cluster.yml
+rke up
+
+export KUBECONFIG=./kube_config_cluster.yml
+
+kubectl get nodes
+
+
+#### Installing Rancher dashboard ####
+docker run -d --restart=unless-stopped \
+  -p 80:80 -p 443:443 \
+  --privileged \
+  rancher/rancher:latest
+  --acme-domain {{ rancher_domain }}
