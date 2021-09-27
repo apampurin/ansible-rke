@@ -17,14 +17,14 @@ open folder `cd ansible-rke`
 fill ansible "hosts" file and vars.yaml
 
 run:
-`ansible-playbook ./playbooks/install_prerequisites.yaml`
+`ansible-playbook ./playbooks/install_prerequisites.yaml -i hosts`
 
 do `ssh-copy-id` cmd from master to worker node (run `ssh-copy-id user@worker_ip` or copy public key and write it in authorized_keys file in worker user/.ssh/ folder)
 
 run:
-`ansible-playbook ./playbooks/install_rke.yaml`
+`ansible-playbook ./playbooks/install_rke.yaml -i hosts`
 
-`ansible-playbook ./playbooks/install_rancher_dashboard.yaml`
+`ansible-playbook ./playbooks/install_rancher_dashboard.yaml -i hosts`
 
 
 
