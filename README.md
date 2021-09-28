@@ -48,3 +48,19 @@ for i in 8285 8472 4789 30000-32767; do
    sudo firewall-cmd --add-port=${i}/udp --permanent
 done
 ```
+
+
+There is random bug when cattle-cluster pod is not running (could not resolve rancher host).
+In that case you need to edit cattle deployments manually
+(to check if cattle-cluster run `kubectl get pods -n cattle-system`)
+
+`kubectl edit -n cattle-system deployment.apps/cattle-cluster-agent`
+find dnsPolicy string and replace with:
+
+```
+dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 8.8.8.8
+          - 8.8.4.4
+```

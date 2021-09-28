@@ -1,8 +1,8 @@
 ---
-- name: start rke
+- name: start rancher dashboard
   shell: |
         docker run -d --restart=unless-stopped \
         -p 80:80 -p 443:443 \
-        --privileged \
-        rancher/rancher:latest
+        --privileged --name rancher \
+        rancher/rancher:latest \
         --acme-domain {{ rancher_domain }}

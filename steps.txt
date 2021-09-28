@@ -190,3 +190,17 @@ docker run -d --restart=unless-stopped \
   --privileged \
   rancher/rancher:latest
   --acme-domain {{ rancher_domain }}
+
+
+
+There is random bug when cattle-cluster pod is not running (could not resolve rancher host).
+In that case you need to edit cattle deployments manually
+
+kubectl edit -n cattle-system deployment.apps/cattle-cluster-agent 
+find dnsPolicy string and replace with:
+
+dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - 8.8.8.8
+          - 8.8.4.4

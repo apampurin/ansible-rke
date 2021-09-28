@@ -5,7 +5,7 @@
 - name: start rke
   shell: |
         rke up --config ~/cluster.yml && \
-        export KUBECONFIG=./kube_config_cluster.yml
+        export KUBECONFIG=~/kube_config_cluster.yml
 
 - name: check cluster
   shell: kubectl get nodes
