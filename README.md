@@ -24,6 +24,9 @@ do `ssh-copy-id` cmd from master to worker node (run `ssh-copy-id user@worker_ip
 run:
 `ansible-playbook ./playbooks/install_rke.yaml -i hosts`
 
+
+Add DNS record for rancher dashboard and set it in group_vars
+
 `ansible-playbook ./playbooks/install_rancher_dashboard.yaml -i hosts`
 
 

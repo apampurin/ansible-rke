@@ -1,7 +1,4 @@
 ---
-- name: copy cluster.yml
-  template: src=cluster.yml.j2 dest=~/cluster.yml
-
 - name: start rke
   shell: |
         docker run -d --restart=unless-stopped \
