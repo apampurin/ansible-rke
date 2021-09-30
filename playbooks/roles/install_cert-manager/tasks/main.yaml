@@ -1,6 +1,6 @@
 ---
 - name: add cert-manager repo from git
-  shell: kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
+  shell: echo $USER; kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
 
 - name: add cluster role
   shell: |
