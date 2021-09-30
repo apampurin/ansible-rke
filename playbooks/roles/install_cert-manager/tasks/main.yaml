@@ -1,6 +1,12 @@
 ---
+- name: test
+  shell: echo $USER;
+  register: shell_result
+- debug:
+    var: shell_result.stdout_lines
+
 - name: add cert-manager repo from git
-  shell: echo $USER; kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
+  shell: kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
 
 - name: add cluster role
   shell: |
