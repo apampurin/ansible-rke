@@ -4,9 +4,9 @@
 
 - name: add cluster role
   shell: |
-         kubectl create clusterrolebinding cluster-admin-binding \
+        kubectl create clusterrolebinding cluster-admin-binding \
         --clusterrole=cluster-admin \
-         --user=admin
+        --user=admin
 
 - name: check cert-manager
   shell: kubectl get pods --namespace cert-manager
