@@ -1,14 +1,12 @@
 ---
-- name: add cert-manager repo fro helm
-  shell: helm repo add jetstack https://charts.jetstack.io && helm repo update
+- name: add cert-manager repo from git
+  shell: kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
 
-- name: start rke
-  shell: helm install \
-  cert-manager jetstack/cert-manager \
-  --namespace cert-manager \
-  --create-namespace \
-  --version v1.5.3 \
-  --set installCRDs=true
+#- name: add cluster role
+#  shell: |
+#         kubectl create clusterrolebinding cluster-admin-binding \
+#        --clusterrole=cluster-admin \
+#         --user=admin
 
 - name: check cert-manager
   shell: kubectl get pods --namespace cert-manager
