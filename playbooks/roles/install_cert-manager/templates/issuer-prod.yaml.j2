@@ -3,6 +3,8 @@ kind: Issuer
 metadata:
   name: letsencrypt-prod
 spec:
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
   acme:
     email: {{ acme_email }}
     privateKeySecretRef:
