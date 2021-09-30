@@ -1,0 +1,9 @@
+---
+- name: Install Cert-Manager
+  hosts: master
+  become: yes
+  remote_user: root
+  become_user: root
+
+  roles:
+    - install_cert-manager

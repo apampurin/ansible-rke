@@ -204,3 +204,41 @@ dnsPolicy: "None"
         nameservers:
           - 8.8.8.8
           - 8.8.4.4
+
+Adding host alias to the cattle agent can be done in this way:
+
+kubectl -n cattle-system patch  deployments cattle-cluster-agent --patch '{
+    "spec": {
+        "template": {
+            "spec": {
+                "hostAliases": [
+                    {
+                      "hostnames":
+                      [
+                        "{{ rancher_server_hostname }}"
+                      ],
+                      "ip": "{{ rancher_server_ip }}"
+                    }
+                ]
+            }
+        }
+    }
+}'
+
+kubectl -n cattle-system patch  daemonsets cattle-node-agent --patch '{
+ "spec": {
+     "template": {
+         "spec": {
+             "hostAliases": [
+                 {
+                    "hostnames":
+                      [
+                        "{{ rancher_server_hostname }}"
+                      ],
+                    "ip": "{{ rancher_server_ip }}"
+                 }
+             ]
+         }
+     }
+ }
+}'

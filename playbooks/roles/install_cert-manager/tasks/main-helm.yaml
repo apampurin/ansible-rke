@@ -1,0 +1,25 @@
+---
+- name: add cert-manager repo fro helm
+  shell: helm repo add jetstack https://charts.jetstack.io && helm repo update
+
+- name: start rke
+  shell: helm install \
+  cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.5.3 \
+  --set installCRDs=true
+
+- name: check cert-manager
+  shell: kubectl get pods --namespace cert-manager
+
+- name: prepare issuer prod
+  template: src=issuer-prod.yaml.j2 dest=~/issuer-prod.yaml
+
+- name: prepare issuer staging
+  template: src=issuer-staging.yaml.j2 dest=~/issuer-staging.yaml
+
+- name: adding issuers
+  shell: kubectl apply -f ~/issuer-prod.yaml && kubectl apply -f ~/issuer-staging.yaml
+
+  
