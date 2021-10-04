@@ -32,7 +32,9 @@ Add DNS record for rancher dashboard and set it in group_vars
 
 add existed cluster to rancher dashboard:
 go to rancher_domain and get admin password (if you can't find password in logs run `docker exec -it rancher reset-password`). When you get clusters dashboard push "Import Existing" button and add created RKE cluster to dashboard.
+
 In some cases cluster shows error like API endpoint exceed while adding. In this case execute following (set rancher_server_hostname as your rancher domain and rancher_server_ip as it set in DNS)
+(to check if cattle-cluster run `kubectl get pods -n cattle-system`)
 
 ```kubectl -n cattle-system patch  deployments cattle-cluster-agent --patch '{
     "spec": {
@@ -55,8 +57,6 @@ In some cases cluster shows error like API endpoint exceed while adding. In this
 
 `ansible-playbook ./playbooks/install_cert_manager.yaml -i hosts`
 
-If you get `Error from server (InternalError): error when creating "/root/issuer-prod.yaml": Internal error occurred: failed calling webhook "webhook.cert-manager.io": Post "https://cert-manager-webhook.cert-manager.svc:443/mutate?timeout=10s": context deadline exceeded` while issuer installation step go to the master node and execute `kubectl delete mutatingwebhookconfiguration.admissionregistration.k8s.io cert-manager-webhook && kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io cert-manager-webhook`. Then make `kubectl apply -f ~/issuer-prod.yaml && kubectl apply -f ~/issuer-staging.yaml`
-
 Check firewall (this is script which I took from random internet manual)
 Firewalld TCP ports:
 
@@ -73,20 +73,4 @@ Firewalld UDP ports:
 for i in 8285 8472 4789 30000-32767; do
    sudo firewall-cmd --add-port=${i}/udp --permanent
 done
-```
-
-
-There is random bug when cattle-cluster pod is not running (could not resolve rancher host).
-In that case you need to edit cattle deployments manually
-(to check if cattle-cluster run `kubectl get pods -n cattle-system`)
-
-`kubectl edit -n cattle-system deployment.apps/cattle-cluster-agent`
-find dnsPolicy string and replace with:
-
-```
-dnsPolicy: "None"
-      dnsConfig:
-        nameservers:
-          - 8.8.8.8
-          - 8.8.4.4
 ```
