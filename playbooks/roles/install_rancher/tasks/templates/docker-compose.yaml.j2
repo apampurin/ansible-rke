@@ -1,0 +1,62 @@
+version: '3'
+
+networks:
+  default:
+    external:
+      name: rancher
+
+services:
+  nginx-proxy:
+    container_name: nginx-proxy
+    image: jwilder/nginx-proxy
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "100m"
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - certs:/etc/nginx/certs
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  nginx-proxy-letsencrypt:
+    container_name: nginx-proxy-letsencrypt
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "100m"
+    volumes: 
+      - certs:/etc/nginx/certs
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - NGINX_PROXY_CONTAINER=nginx-proxy
+
+  rancher:
+    image: rancher/rancher:latest
+    restart: unless-stopped
+    container_name: rancher
+    privileged: true
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "5"
+        max-size: "100m"
+    expose:
+      - "80"
+      - "443"
+    environment:
+      VIRTUAL_HOST: '{{ rancher_domain }}'
+      VIRTUAL_PORT: '443'
+      VIRTUAL_PROTO: https
+      LETSENCRYPT_HOST: '{{ rancher_domain }}'
+      LETSENCRYPT_EMAIL: '{{ acme_email }}'

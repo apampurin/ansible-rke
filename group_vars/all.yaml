@@ -1,7 +1,7 @@
 master_node_ip: 10.0.0.4
 worker_node_ip: 10.0.0.5
 ssh_user: root
-ssh_port: 5022
+ssh_port: 22
 ssh_key_path: /root/.ssh/id_rsa
 ssh_cert_path: /root/.ssh/id_rsa.pub
 cluster_name: dev-hq2

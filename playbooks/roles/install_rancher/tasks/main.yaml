@@ -1,8 +1,9 @@
 ---
-- name: start rancher dashboard
-  shell: |
-        docker run -d --restart=unless-stopped \
-        -p 80:80 -p 443:443 \
-        --privileged --name rancher \
-        rancher/rancher:v2.5-head \
-        --acme-domain {{ rancher_domain }}
+- name: start nginx-proxy and lets encrypt for ACME
+  shell: docker create network rancher
+
+- name: copy docker-compose
+  template: src=docker-compose.yaml.j2 dest=~/docker-compose.yaml
+
+- name: start stack
+  shell: docker-compose up -d -f ~/docker-compose.yaml
