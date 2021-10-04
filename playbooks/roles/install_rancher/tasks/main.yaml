@@ -1,9 +1,10 @@
 ---
 - name: start nginx-proxy and lets encrypt for ACME
   shell: docker network create rancher
+  ignore_errors: True
 
 - name: copy docker-compose
   template: src=docker-compose.yaml.j2 dest=~/docker-compose.yaml
 
 - name: start stack
-  shell: docker-compose up -d -f ~/docker-compose.yaml
+  shell: docker-compose -f ~/docker-compose.yaml up -d

@@ -9,3 +9,6 @@
 
 - name: check cluster
   shell: kubectl get nodes
+
+- name: remove ingress nginx webhook service
+  shell: kubectl delete -A ValidatingWebhookConfiguration ingress-nginx-admission

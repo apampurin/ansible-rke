@@ -51,6 +51,8 @@ services:
       options:
         max-file: "5"
         max-size: "100m"
+    volumes:
+      - rancher:/var/lib/rancher
     expose:
       - "80"
       - "443"
@@ -60,3 +62,9 @@ services:
       VIRTUAL_PROTO: https
       LETSENCRYPT_HOST: '{{ rancher_domain }}'
       LETSENCRYPT_EMAIL: '{{ acme_email }}'
+
+volumes:
+  certs:
+  vhost.d:
+  html:
+  rancher:

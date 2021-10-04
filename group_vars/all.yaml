@@ -6,4 +6,4 @@ ssh_key_path: /root/.ssh/id_rsa
 ssh_cert_path: /root/.ssh/id_rsa.pub
 cluster_name: dev-hq2
 rancher_domain: dev-hq2.example.com
-acme_email: 
+acme_email: dev@example.com

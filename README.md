@@ -5,10 +5,10 @@ Also you will need to "sudo" to all shell commands in playbooks which need super
 
 From master node install ansible
 ```bash
-    apt update && \
-    apt install -y git software-properties-common && \
-    add-apt-repository --yes --update ppa:ansible/ansible && \
-    apt install ansible -y
+apt update && \
+apt install -y git software-properties-common && \
+add-apt-repository --yes --update ppa:ansible/ansible && \
+apt install ansible -y
 ```
 
 Clone repo `git clone https://github.com/apampurin/ansible-rke.git`
@@ -16,7 +16,7 @@ open folder `cd ansible-rke`
 
 fill ansible "hosts" file and group_vars/all.yaml file
 
-copy public key to all nodes
+copy public key to all nodes (all nodes should be accessible from master node. IMPORTANT master node also should be accessible from itself so copy public key to master's authorized_keys also)
 do `ssh-copy-id` cmd from master to worker node (run `ssh-copy-id user@worker_ip` or copy public key and write it in authorized_keys file in worker user/.ssh/ folder)
 
 run:
@@ -30,7 +30,28 @@ Add DNS record for rancher dashboard and set it in group_vars
 
 `ansible-playbook ./playbooks/install_rancher_dashboard.yaml -i hosts`
 
-Add email for cert-manager issuer ACME in group_vars
+add existed cluster to rancher dashboard:
+go to rancher_domain and get admin password (if you can't find password in logs run `docker exec -it rancher reset-password`). When you get clusters dashboard push "Import Existing" button and add created RKE cluster to dashboard.
+In some cases cluster shows error like API endpoint exceed while adding. In this case execute following (set rancher_server_hostname as your rancher domain and rancher_server_ip as it set in DNS)
+
+```kubectl -n cattle-system patch  deployments cattle-cluster-agent --patch '{
+    "spec": {
+        "template": {
+            "spec": {
+                "hostAliases": [
+                    {
+                      "hostnames":
+                      [
+                        "{{ rancher_server_hostname }}"
+                      ],
+                      "ip": "{{ rancher_server_ip }}"
+                    }
+                ]
+            }
+        }
+    }
+}'```
+
 
 `ansible-playbook ./playbooks/install_cert_manager.yaml -i hosts`
 

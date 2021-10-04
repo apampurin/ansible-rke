@@ -243,5 +243,7 @@ kubectl -n cattle-system patch  daemonsets cattle-node-agent --patch '{
  }
 }'
 
+kubectl delete mutatingwebhookconfiguration.admissionregistration.k8s.io cert-manager-webhook
+kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io cert-manager-webhook
 
 cert manager deploying Issuers error https://github.com/jetstack/cert-manager/issues/2602

@@ -2,17 +2,23 @@
 - name: add cert-manager repo from git
   shell: kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
 
- - name: add cluster role
-   shell: |
+- name: add cluster role
+  shell: |
          kubectl create clusterrolebinding cluster-admin-binding \
          --clusterrole=cluster-admin \
          --user=admin
+  ignore_errors: True
 
 - name: check cert-manager
   shell: kubectl get pods --namespace cert-manager
-  register: cert-manager
-- debug: msg="{{ cert-manager.stdout }}"
+  register: certmanager
+- debug: msg="{{ certmanager.stdout }}"
 
+- name: delete cert-manager webhook
+  shell: |
+        kubectl delete mutatingwebhookconfiguration.admissionregistration.k8s.io cert-manager-webhook && \
+        kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io cert-manager-webhook
+  ignore_errors: True
 
 - name: prepare issuer prod
   template: src=issuer-prod.yaml.j2 dest=~/issuer-prod.yaml
