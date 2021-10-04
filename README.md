@@ -14,12 +14,13 @@ From master node install ansible
 Clone repo `git clone https://github.com/apampurin/ansible-rke.git`
 open folder `cd ansible-rke`
 
-fill ansible "hosts" file and vars.yaml
+fill ansible "hosts" file and group_vars/all.yaml file
+
+copy public key to all nodes
+do `ssh-copy-id` cmd from master to worker node (run `ssh-copy-id user@worker_ip` or copy public key and write it in authorized_keys file in worker user/.ssh/ folder)
 
 run:
 `ansible-playbook ./playbooks/install_prerequisites.yaml -i hosts`
-
-do `ssh-copy-id` cmd from master to worker node (run `ssh-copy-id user@worker_ip` or copy public key and write it in authorized_keys file in worker user/.ssh/ folder)
 
 run:
 `ansible-playbook ./playbooks/install_rke.yaml -i hosts`
@@ -29,7 +30,11 @@ Add DNS record for rancher dashboard and set it in group_vars
 
 `ansible-playbook ./playbooks/install_rancher_dashboard.yaml -i hosts`
 
+Add email for cert-manager issuer ACME in group_vars
 
+`ansible-playbook ./playbooks/install_cert_manager.yaml -i hosts`
+
+If you get `Error from server (InternalError): error when creating "/root/issuer-prod.yaml": Internal error occurred: failed calling webhook "webhook.cert-manager.io": Post "https://cert-manager-webhook.cert-manager.svc:443/mutate?timeout=10s": context deadline exceeded` while issuer installation step go to the master node and execute `kubectl delete mutatingwebhookconfiguration.admissionregistration.k8s.io cert-manager-webhook && kubectl delete validatingwebhookconfigurations.admissionregistration.k8s.io cert-manager-webhook`. Then make `kubectl apply -f ~/issuer-prod.yaml && kubectl apply -f ~/issuer-staging.yaml`
 
 Check firewall (this is script which I took from random internet manual)
 Firewalld TCP ports:

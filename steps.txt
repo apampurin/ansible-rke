@@ -242,3 +242,6 @@ kubectl -n cattle-system patch  daemonsets cattle-node-agent --patch '{
      }
  }
 }'
+
+
+cert manager deploying Issuers error https://github.com/jetstack/cert-manager/issues/2602

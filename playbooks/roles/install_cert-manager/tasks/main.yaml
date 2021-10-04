@@ -2,14 +2,17 @@
 - name: add cert-manager repo from git
   shell: kubectl apply -f https://github.com/jetstack/cert-manager/releases/download/v1.5.3/cert-manager.yaml
 
-# - name: add cluster role
-#   shell: |
-#         kubectl create clusterrolebinding cluster-admin-binding \
-#         --clusterrole=cluster-admin \
-#         --user=admin
+ - name: add cluster role
+   shell: |
+         kubectl create clusterrolebinding cluster-admin-binding \
+         --clusterrole=cluster-admin \
+         --user=admin
 
 - name: check cert-manager
   shell: kubectl get pods --namespace cert-manager
+  register: cert-manager
+- debug: msg="{{ cert-manager.stdout }}"
+
 
 - name: prepare issuer prod
   template: src=issuer-prod.yaml.j2 dest=~/issuer-prod.yaml

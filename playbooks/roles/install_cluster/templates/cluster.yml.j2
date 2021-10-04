@@ -30,6 +30,7 @@ ingress:
   options:
      use-forwarded-headers: "true"
 # Using SSH private key with a passphrase - eval `ssh-agent -s` && ssh-add
-ssh_agent_auth: true
+ssh_agent_auth: false
 #  SSH key that access all hosts in your cluster
 ssh_key_path: {{ ssh_key_path }}
+ssh_cert_path: {{ ssh_cert_path }}
